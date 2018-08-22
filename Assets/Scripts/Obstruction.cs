@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Obstruction : MonoBehaviour {
-    public float health;
+    public float hp;
     public bool isDestructable;
 	// Use this for initialization
 
 	// Update is called once per frame
 	void Update () {
-		if (health <0 && isDestructable == true)
+		if (hp <=0 && isDestructable == true)
         {
             destroy();
         }
@@ -24,8 +24,10 @@ public class Obstruction : MonoBehaviour {
     {
         if (other.tag == "Projectile")
         {
+            
             GameObject projectile = other.gameObject;
-            this.health -= projectile.GetComponent<Projectile>().damage;
+            this.hp -= projectile.GetComponent<Projectile>().damage;
+            print(this.hp);
             Destroy(projectile);
         }
     }
