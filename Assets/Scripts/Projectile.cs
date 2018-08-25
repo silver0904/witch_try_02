@@ -1,16 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Projectile : MonoBehaviour {
+public class Projectile : NetworkBehaviour {
 
     // Variables
     protected float maxDistance;
     protected float traveledDistance;
     protected float travelSpeed;
-    public float damage;
-    public float kp;
-    public GameObject emitter;
+    protected float damage;
+    protected float kp;
+    protected GameObject emitter;
 
     // Constructor
     public Projectile(float maxDistance, float travelSpeed, float damage, float kp)
@@ -33,5 +34,23 @@ public class Projectile : MonoBehaviour {
 
         if (traveledDistance >= maxDistance)
             Destroy(this.gameObject);
+    }
+
+    public float getKp()
+    {
+        return kp;
+    }
+
+    public float getDamage()
+    {
+        return damage;
+    }
+    public GameObject getEmitter()
+    {
+        return emitter;
+    }
+    public void setEmitter(GameObject Object)
+    {
+        emitter = Object;
     }
 }

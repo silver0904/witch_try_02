@@ -26,7 +26,7 @@ public class Obstruction : MonoBehaviour {
         {
             
             GameObject projectile = other.gameObject;
-            this.hp -= projectile.GetComponent<Projectile>().damage;
+            this.hp -= projectile.GetComponent<Projectile>().getDamage();
             print(this.hp);
             Destroy(projectile);
         }

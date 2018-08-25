@@ -18,19 +18,19 @@ public class Player : MonoBehaviour
     // Methods
     public void Update()
     {
-        //player facing mouse
-        Plane playerPlane = new Plane(Vector3.up, transform.position);
-        Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
-        float hitDist = 0.0f;
+        ////player facing mouse
+        //Plane playerPlane = new Plane(Vector3.up, transform.position);
+        //Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
+        //float hitDist = 0.0f;
 
-        if (playerPlane.Raycast(ray, out hitDist))
-        {
-            Vector3 targetPoint = ray.GetPoint(hitDist);
-            Quaternion targetRotation = Quaternion.LookRotation(targetPoint - transform.position);
-            targetRotation.x = 0;
-            targetRotation.z = 0;
-            playerObj.transform.rotation = Quaternion.Slerp(playerObj.transform.rotation, targetRotation, rotationSmooth * Time.deltaTime);
-        }
+        //if (playerPlane.Raycast(ray, out hitDist))
+        //{
+        //    Vector3 targetPoint = ray.GetPoint(hitDist);
+        //    Quaternion targetRotation = Quaternion.LookRotation(targetPoint - transform.position);
+        //    targetRotation.x = 0;
+        //    targetRotation.z = 0;
+        //    playerObj.transform.rotation = Quaternion.Slerp(playerObj.transform.rotation, targetRotation, rotationSmooth * Time.deltaTime);
+        //}
         playerMovementControl();
 
  
@@ -62,17 +62,17 @@ public class Player : MonoBehaviour
         }
         if (Input.GetMouseButtonDown(0))
         {
-            shoot();
+            //shoot();
         }
 
         
     }
 
-    private void shoot()
-    {
-        projectileSpawned = Instantiate(projectile.transform, projectileSpawnPoint.transform.position, Quaternion.identity);
-        projectileSpawned.GetComponent<Projectile>().emitter = this.gameObject;
-        projectileSpawned.rotation = projectileSpawnPoint.transform.rotation;
-    }
+    //private void shoot()
+    //{
+    //    projectileSpawned = Instantiate(projectile.transform, projectileSpawnPoint.transform.position, Quaternion.identity);
+    //    projectileSpawned.GetComponent<Projectile>().emitter = this.gameObject;
+    //    projectileSpawned.rotation = projectileSpawnPoint.transform.rotation;
+    //}
 
 }
