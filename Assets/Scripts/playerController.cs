@@ -5,7 +5,9 @@ using UnityEngine.Networking;
 
 public class playerController : NetworkBehaviour {
     //public syncvar variable
+    [SyncVar]
     public double hp = 1000;
+
 
     // Public Variables
     public float movementSpeed;
@@ -14,9 +16,12 @@ public class playerController : NetworkBehaviour {
     //public float knockBackCounter = 0;
     public GameObject projectileSpawnPoint;
     public GameObject selectedProjectile;
+    public bool isCharging = false;
+    public bool isCharged = false;
 
-    
+
     // Private helper variables
+    private double chargingCounter;
     private float rotationSmooth = 7F;
     private Quaternion previousRotation;
     private Vector3 moveDirection;
@@ -38,17 +43,33 @@ public class playerController : NetworkBehaviour {
         if (hasAuthority == false)
         {
             // if player doesn't have authority to this Player unit
+            // if player is charging to spawn a fireball
+            // don't do anything
             return;
         }
+        //check and update the situation of the player unit first
         checkDie();
-        moveDirection = new Vector3(Input.GetAxis("Horizontal") * movementSpeed, 0, Input.GetAxis("Vertical") * movementSpeed);
+        checkCharging();
+
+        //exterternalDirection refer to force by other projectile
         externalDirection = knockBack.getUpdatedKnockBack();
 
-        print("knockBackCounter: " + knockBack.getKnockBackCounter());
-        print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
+        //moveDirection refers to player control movement
+        moveDirection = new Vector3(Input.GetAxis("Horizontal") * movementSpeed, 0, Input.GetAxis("Vertical") * movementSpeed);
 
-        actualDirection = moveDirection + externalDirection;
-
+        if (isCharging == false)
+        {
+            // when player unit is not charging, it movement depends on external force + it's player control
+            actualDirection = moveDirection + externalDirection;
+        }
+        else
+        {
+            // when player unit is charging, it movement only depends on external force, since it is not allowed to move when charging
+            actualDirection = externalDirection;
+        }
+        
+        //print("knockBackCounter: " + knockBack.getKnockBackCounter());
+        //print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
         // v = u + at
         actualDirection.y = actualDirection.y + (gravityScale * Physics.gravity.y);
 
@@ -57,27 +78,11 @@ public class playerController : NetworkBehaviour {
         //print(actualDirection.x + ", " + actualDirection.y + ", " + actualDirection.z);
 
 
-
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetButtonDown("Fire1") )
         {
-            
-            Plane playerPlane = new Plane(Vector3.up, transform.position);
-            Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
-            float hitDist = 0.0f;
-
-            if (playerPlane.Raycast(ray, out hitDist))
-            {
-                Vector3 targetPoint = ray.GetPoint(hitDist);
-                Quaternion targetRotation = Quaternion.LookRotation(targetPoint - transform.position);
-                targetRotation.x = 0;
-                targetRotation.z = 0;
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 1);
-                previousRotation = Quaternion.Slerp(transform.rotation, targetRotation, 1);
-            }
-            transform.rotation = previousRotation;
-            shoot();
+            shoot();            
         }
-        else
+        if (isCharging == false)
         {
             // character rotate with move direction
             if (moveDirection == new Vector3(0, 0, 0))
@@ -90,15 +95,44 @@ public class playerController : NetworkBehaviour {
                 previousRotation = Quaternion.LookRotation(moveDirection);
             }
         }
+        else
+            // when charging, since previous rototation is set to the shooting direction, so just need to maintain that rotation.
+            transform.rotation = previousRotation;
 
 
     }
 
     private void shoot()
     {
+        // character rotate with mouse direction
+        Plane playerPlane = new Plane(Vector3.up, transform.position);
+        Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
+        float hitDist = 0.0f;
+
+        if (playerPlane.Raycast(ray, out hitDist))
+        {
+            Vector3 targetPoint = ray.GetPoint(hitDist);
+            Quaternion targetRotation = Quaternion.LookRotation(targetPoint - transform.position);
+            targetRotation.x = 0;
+            targetRotation.z = 0;
+            // change the unit rotation to the mouse position.
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 1);
+            previousRotation = transform.rotation;
+        }
+
+
+        print("charging time = " + selectedProjectile.GetComponent<Projectile>().getChargingTime());
+        print("kp = " + selectedProjectile.GetComponent<Projectile>().getKp());
+        //shoot(selectedProjectile.GetComponent<Fireball>().getChargingTime());
         //projectileSpawned = Instantiate(selectedProjectile.transform, projectileSpawnPoint.transform.position, Quaternion.identity);
         // this spawn projectile can be modified later to accomadate other type of projectile
-        CmdSpawnProjectile();
+        chargingCounter = 0.3;
+        //print("charging Counter = " + chargingCounter);
+        //update the isCharging state
+        checkCharging();
+        
+        // wait for some time to invoke spawn projectile
+        Invoke("CmdSpawnProjectile",(float)0.3);
         
     }
 
@@ -131,52 +165,22 @@ public class playerController : NetworkBehaviour {
 
     }
 
-    //// this function handle knock back sitation
-    //private void knockBack(Collider other)
-    //{
+    private void checkCharging()
+    {
+        if (chargingCounter > 0)
+        {       
+            chargingCounter -= 1* Time.deltaTime;
+            isCharging = true;
+            print("chargingCounter = " + chargingCounter + " isCharging =  " + isCharging);
+        }
+        else
+        {
+            chargingCounter = 0;
+            isCharging = false;
+        }
+    }
 
-    //    float kp = other.GetComponent<Projectile>().getKp();
-    //    //if (knockBackCounter > 0) knockBackCounter = ;
-    //    //else  
-    //    knockBackCounter += kp;
-    //    while (knockBackCounter > 0)
-    //    {
 
-    //        Vector3 hitDirection = other.transform.position - transform.position;
-    //        hitDirection = hitDirection.normalized;
-    //        hitDirection.y = 0;
-    //        externalDirection = (-hitDirection * knockBackCounter);
-    //        print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
-    //        knockBackCounter -= kp * 0.1f;
-    //    }
-    //    if (knockBackCounter <= 0)
-    //    {
-    //        print("reset");
-    //        // reset the knock back counter and external direction so that the object wont keep sliding away.
-    //        knockBackCounter = 0;
-    //        externalDirection = new Vector3(0, 0, 0);
-    //    }
-    //}
-    //private void checkKnockBack()
-    //{
-    //    if (knockBackCounter > 0)
-    //    {
-
-    //        Vector3 hitDirection = other.transform.position - transform.position;
-    //        hitDirection = hitDirection.normalized;
-    //        hitDirection.y = 0;
-    //        externalDirection = (-hitDirection * knockBackCounter);
-    //        print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
-    //        knockBackCounter -= kp * 0.1f;
-    //    }
-    //    if (knockBackCounter <= 0)
-    //    {
-    //        print("reset");
-    //        // reset the knock back counter and external direction so that the object wont keep sliding away.
-    //        knockBackCounter = 0;
-    //        externalDirection = new Vector3(0, 0, 0);
-    //    }
-    //}
 
     //COMMAND, use to send command to the server
     [Command]

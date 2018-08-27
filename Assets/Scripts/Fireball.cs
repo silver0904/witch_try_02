@@ -7,8 +7,9 @@ public class Fireball : Projectile {
     private static float fireballMaxDistance = 7f;
     private static float fireballBaseDamage = 10;
     private static double fireballBasekp = 100;
+    private static double fireballChargingTime = 0.3;
 
-    public Fireball(float maxDistance , float travelSpeed, float damage) : base(fireballMaxDistance, fireballTravelSpeed, fireballBaseDamage, fireballBasekp)
+    public Fireball(float maxDistance , float travelSpeed, float damage) : base(fireballMaxDistance, fireballTravelSpeed, fireballBaseDamage, fireballBasekp, fireballChargingTime)
     {
     }
 
@@ -26,6 +27,8 @@ public class Fireball : Projectile {
         travelSpeed = fireballTravelSpeed;
         damage = fireballBaseDamage;
         kp = fireballBasekp;
+        chargingTime = fireballChargingTime;
+        print("this.chargingTime =" + getChargingTime());
     }
 	
 	// Update is called once per frame
