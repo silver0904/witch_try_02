@@ -6,14 +6,22 @@ public class Fireball : Projectile {
     private static float fireballTravelSpeed = 5;
     private static float fireballMaxDistance = 7f;
     private static float fireballBaseDamage = 10;
-    private static float fireballBasekp = 5;
+    private static double fireballBasekp = 100;
 
     public Fireball(float maxDistance , float travelSpeed, float damage) : base(fireballMaxDistance, fireballTravelSpeed, fireballBaseDamage, fireballBasekp)
     {
     }
 
-	// Use this for initialization
-	void Start () {
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "PlayerUnit")
+        {
+            Destroy(this.gameObject);
+        }
+    }
+
+    // Use this for initialization
+    void Start () {
         maxDistance = fireballMaxDistance;
         travelSpeed = fireballTravelSpeed;
         damage = fireballBaseDamage;

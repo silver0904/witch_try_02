@@ -10,11 +10,11 @@ public class Projectile : NetworkBehaviour {
     protected float traveledDistance;
     protected float travelSpeed;
     protected float damage;
-    protected float kp;
+    protected double kp;
     protected GameObject emitter;
 
     // Constructor
-    public Projectile(float maxDistance, float travelSpeed, float damage, float kp)
+    public Projectile(float maxDistance, float travelSpeed, float damage, double kp)
     {
         this.maxDistance = maxDistance;
         this.travelSpeed = travelSpeed;
@@ -36,7 +36,7 @@ public class Projectile : NetworkBehaviour {
             Destroy(this.gameObject);
     }
 
-    public float getKp()
+    public double getKp()
     {
         return kp;
     }

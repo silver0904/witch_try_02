@@ -1026,12 +1026,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fac3229648e0e54e9ea519d8af83a65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hp: 1000
   movementSpeed: 5
   controller: {fileID: 0}
   gravityScale: 0.5
+  projectileSpawnPoint: {fileID: 1858323674864844}
   selectedProjectile: {fileID: 1330463010271010, guid: 2c81e44c899c5c34b84ef6698dc370bb,
     type: 2}
-  projectileSpawnPoint: {fileID: 1858323674864844}
 --- !u!137 &137063311408370042
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1

@@ -4,12 +4,14 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class playerController : NetworkBehaviour {
+    //public syncvar variable
+    public double hp = 1000;
 
     // Public Variables
     public float movementSpeed;
     public CharacterController controller;
     public float gravityScale = 0.5F;
-    public float knockBackCounter = 0;
+    //public float knockBackCounter = 0;
     public GameObject projectileSpawnPoint;
     public GameObject selectedProjectile;
 
@@ -20,17 +22,15 @@ public class playerController : NetworkBehaviour {
     private Vector3 moveDirection;
     private Vector3 actualDirection;
     private Vector3 externalDirection = new Vector3();
-
+    private knockBackHandler knockBack;
     private GameObject projectileSpawned;
 
-    //public Rigidbody body;
 
     // Use this for initialization
     void Start () {
 
         controller = GetComponent<CharacterController>();
-        
-
+        knockBack = new knockBackHandler();
     }
 	
 	// Update is called once per frame
@@ -40,15 +40,25 @@ public class playerController : NetworkBehaviour {
             // if player doesn't have authority to this Player unit
             return;
         }
+        checkDie();
         moveDirection = new Vector3(Input.GetAxis("Horizontal") * movementSpeed, 0, Input.GetAxis("Vertical") * movementSpeed);
+        externalDirection = knockBack.getUpdatedKnockBack();
+
+        print("knockBackCounter: " + knockBack.getKnockBackCounter());
+        print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
+
         actualDirection = moveDirection + externalDirection;
+
         // v = u + at
         actualDirection.y = actualDirection.y + (gravityScale * Physics.gravity.y);
+
+        //after this line, the player move in meter per seconds scale, rather than meter per frame scale
         controller.Move(actualDirection*Time.deltaTime);
+        //print(actualDirection.x + ", " + actualDirection.y + ", " + actualDirection.z);
 
 
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetButtonDown("Fire1"))
         {
             
             Plane playerPlane = new Plane(Vector3.up, transform.position);
@@ -62,8 +72,9 @@ public class playerController : NetworkBehaviour {
                 targetRotation.x = 0;
                 targetRotation.z = 0;
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 1);
-                previousRotation = transform.rotation;
+                previousRotation = Quaternion.Slerp(transform.rotation, targetRotation, 1);
             }
+            transform.rotation = previousRotation;
             shoot();
         }
         else
@@ -95,33 +106,77 @@ public class playerController : NetworkBehaviour {
     {
         if (other.tag == "Projectile")
         {
+            
             if (other.GetComponent<Projectile>().getEmitter() == this.gameObject)
             {
                 // do nothing if the emitter of the projectile is yourself
                 return;
             }
-            knockBack(other);
-        }
-    }
-
-    // this function handle knock back sitation
-    private void knockBack(Collider other)
-    {
-        float kp = other.GetComponent<Projectile>().getKp();
-        //if (knockBackCounter > 0) knockBackCounter = ;
-        //else  
-        knockBackCounter += kp;
-        while (knockBackCounter > 0)
-        {
-
+            print("hit!");
+            double kp = other.GetComponent<Projectile>().getKp();
             Vector3 hitDirection = other.transform.position - transform.position;
-            hitDirection = hitDirection.normalized;
-            hitDirection.y = 0;
-            externalDirection = (-hitDirection * knockBackCounter);
-            print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
-            knockBackCounter -= kp * 0.25f;
+            knockBack.setKnockBack(kp, hitDirection);
+
         }
     }
+
+    private void checkDie()
+    {
+        if (transform.position.y < -20)
+        {
+            print("someone drop to dead!");
+            Destroy(this.gameObject);
+            
+        }
+
+    }
+
+    //// this function handle knock back sitation
+    //private void knockBack(Collider other)
+    //{
+
+    //    float kp = other.GetComponent<Projectile>().getKp();
+    //    //if (knockBackCounter > 0) knockBackCounter = ;
+    //    //else  
+    //    knockBackCounter += kp;
+    //    while (knockBackCounter > 0)
+    //    {
+
+    //        Vector3 hitDirection = other.transform.position - transform.position;
+    //        hitDirection = hitDirection.normalized;
+    //        hitDirection.y = 0;
+    //        externalDirection = (-hitDirection * knockBackCounter);
+    //        print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
+    //        knockBackCounter -= kp * 0.1f;
+    //    }
+    //    if (knockBackCounter <= 0)
+    //    {
+    //        print("reset");
+    //        // reset the knock back counter and external direction so that the object wont keep sliding away.
+    //        knockBackCounter = 0;
+    //        externalDirection = new Vector3(0, 0, 0);
+    //    }
+    //}
+    //private void checkKnockBack()
+    //{
+    //    if (knockBackCounter > 0)
+    //    {
+
+    //        Vector3 hitDirection = other.transform.position - transform.position;
+    //        hitDirection = hitDirection.normalized;
+    //        hitDirection.y = 0;
+    //        externalDirection = (-hitDirection * knockBackCounter);
+    //        print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
+    //        knockBackCounter -= kp * 0.1f;
+    //    }
+    //    if (knockBackCounter <= 0)
+    //    {
+    //        print("reset");
+    //        // reset the knock back counter and external direction so that the object wont keep sliding away.
+    //        knockBackCounter = 0;
+    //        externalDirection = new Vector3(0, 0, 0);
+    //    }
+    //}
 
     //COMMAND, use to send command to the server
     [Command]

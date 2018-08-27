@@ -18,18 +18,26 @@ public class PlayerConnectionObject : NetworkBehaviour {
         CmdSpawnMyUnit();
     }
     public GameObject playerUnitPrefab;
+    public GameObject myUnit;
 
     // Update is called once per frame
     void Update()
     {
-
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            if (myUnit == null)
+                CmdSpawnMyUnit();
+            else
+                print("cannot spawn when you are still alive");
+        }
+        
     }
 
 
     [Command]
     void CmdSpawnMyUnit()
     {
-        GameObject myUnit = Instantiate(playerUnitPrefab);
+        myUnit = Instantiate(playerUnitPrefab);
         NetworkServer.SpawnWithClientAuthority(myUnit, connectionToClient);
     }
 }
