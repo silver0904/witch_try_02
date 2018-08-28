@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Obstruction : MonoBehaviour {
+public class Obstruction : NetworkBehaviour {
+    [SyncVar]
     public float hp;
     public bool isDestructable;
 	// Use this for initialization

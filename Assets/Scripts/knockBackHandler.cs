@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class knockBackHandler {
+public class knockBackHandler : ScriptableObject{
     //variables
     public double knockBackCounter = 0;
     private double threshold = 1.000003;

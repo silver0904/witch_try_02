@@ -1,9 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 
-public class shootHandler {
+public class shootHandler :ScriptableObject{
     private GameObject selectedProjectile;
     private GameObject projectileSpawned;
     private Quaternion shootingDirection;
@@ -18,7 +17,8 @@ public class shootHandler {
         this.selectedProjectile = projectile;
         this.playerUnitTransform = unitTransform;
         isCharging = false;
-        //chargingTime = selectedProjectile.GetComponent<Fireball>().getChargingTime();
+        chargingTime = selectedProjectile.GetComponent<Fireball>().getChargingTime();
+        Debug.Log("charging Time get Component" + chargingTime);
         chargingTime = 0.2f + 0.05f;
     }
 

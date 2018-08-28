@@ -6,29 +6,18 @@ using UnityEngine.Networking;
 public class Projectile : NetworkBehaviour {
 
     // Variables
-    [SyncVar]
-    protected float maxDistance;
-    [SyncVar]
-    protected float traveledDistance;
-    [SyncVar]
-    protected float travelSpeed;
-    [SyncVar]
-    protected float damage;
-    [SyncVar]
-    protected double kp;
-    [SyncVar]
-    protected double chargingTime;
-    [SyncVar]
-    protected uint playerNetId;
+    protected  float maxDistance;
+    protected  float traveledDistance;
+    protected  float travelSpeed;
+    protected  float damage;
+    protected  double kp;
+    protected  float chargingTime;
+    protected  uint playerNetId;
 
     // Constructor
-    public Projectile(float maxDistance, float travelSpeed, float damage, double kp, double chargingTime)
+    public Projectile()
     {
-        this.maxDistance = maxDistance;
-        this.travelSpeed = travelSpeed;
-        this.damage = damage;
-        this.kp = kp;
-        this.chargingTime = chargingTime;
+
     }
 
 	// Use this for initialization
@@ -62,7 +51,7 @@ public class Projectile : NetworkBehaviour {
     {
         this.playerNetId = NetId;
     }
-    public double getChargingTime()
+    public float getChargingTime()
     {
 
         return chargingTime;

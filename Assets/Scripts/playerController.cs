@@ -37,6 +37,7 @@ public class playerController : NetworkBehaviour
         controller = GetComponent<CharacterController>();
         KnockBackHandler = new knockBackHandler();
         ShootHandler = new shootHandler(selectedProjectile, this.gameObject.transform);
+        
 
     }
 
@@ -83,7 +84,7 @@ public class playerController : NetworkBehaviour
 
         if (Input.GetButtonDown("Fire1"))
         {
-            shoot();
+            StartCoroutine(shoot());
         }
         if (isCharging == false)
         {
@@ -105,11 +106,13 @@ public class playerController : NetworkBehaviour
 
     }
 
-    public void shoot()
+    IEnumerator shoot()
     {
         ShootHandler.shoot();
         float chargingTime = ShootHandler.getChargingTime();
-        chargeProjectile(chargingTime);
+        yield return new WaitForSeconds(chargingTime);
+        CmdSpawnProjectile();
+        yield return null;
     }
 
     public void chargeProjectile(float chargingTime)
@@ -121,11 +124,12 @@ public class playerController : NetworkBehaviour
     {
         if (other.tag == "Projectile")
         {
-
+            print("other.damage = " +other.GetComponent<Projectile>().getDamage());
             if (other.GetComponent<Projectile>().getPlayerNetId() == netId.Value)
             {
                 // do nothing if the emitter of the projectile is yourself
-                Debug.Log("netID = " + netId.Value);
+                Debug.Log("this object netID = " + netId.Value);
+                Debug.Log("fireball has netID = " + other.GetComponent<Projectile>().getPlayerNetId());
                 return;
             }
             print("hit!");
