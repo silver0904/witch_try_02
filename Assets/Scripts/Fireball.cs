@@ -17,10 +17,15 @@ public class Fireball : Projectile {
     {
         if (other.tag == "PlayerUnit")
         {
-            Destroy(this.gameObject);
+
+            Invoke("selfDestroy", Time.deltaTime);
         }
     }
 
+    private void selfDestroy()
+    {
+        Destroy(this.gameObject);
+    }
     // Use this for initialization
     void Start () {
         maxDistance = fireballMaxDistance;

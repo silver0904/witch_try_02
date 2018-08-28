@@ -19,7 +19,7 @@ public class Projectile : NetworkBehaviour {
     [SyncVar]
     protected double chargingTime;
     [SyncVar]
-    protected GameObject emitter;
+    protected uint playerNetId;
 
     // Constructor
     public Projectile(float maxDistance, float travelSpeed, float damage, double kp, double chargingTime)
@@ -54,13 +54,13 @@ public class Projectile : NetworkBehaviour {
     {
         return damage;
     }
-    public GameObject getEmitter()
+    public uint getPlayerNetId()
     {
-        return emitter;
+        return playerNetId;
     }
-    public void setEmitter(GameObject Object)
+    public void setPlayerNetId(uint NetId)
     {
-        emitter = Object;
+        this.playerNetId = NetId;
     }
     public double getChargingTime()
     {

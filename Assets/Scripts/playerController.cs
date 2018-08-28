@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class playerController : NetworkBehaviour {
+public class playerController : NetworkBehaviour
+{
     //public syncvar variable
     [SyncVar]
     public double hp = 1000;
@@ -16,8 +17,6 @@ public class playerController : NetworkBehaviour {
     //public float knockBackCounter = 0;
     public GameObject projectileSpawnPoint;
     public GameObject selectedProjectile;
-    public bool isCharging = false;
-    public bool isCharged = false;
 
 
     // Private helper variables
@@ -27,19 +26,23 @@ public class playerController : NetworkBehaviour {
     private Vector3 moveDirection;
     private Vector3 actualDirection;
     private Vector3 externalDirection = new Vector3();
-    private knockBackHandler knockBack;
+    private knockBackHandler KnockBackHandler;
+    private shootHandler ShootHandler;
     private GameObject projectileSpawned;
 
 
     // Use this for initialization
-    void Start () {
-
+    void Start()
+    {
         controller = GetComponent<CharacterController>();
-        knockBack = new knockBackHandler();
+        KnockBackHandler = new knockBackHandler();
+        ShootHandler = new shootHandler(selectedProjectile, this.gameObject.transform);
+
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update()
+    {
         if (hasAuthority == false)
         {
             // if player doesn't have authority to this Player unit
@@ -49,10 +52,10 @@ public class playerController : NetworkBehaviour {
         }
         //check and update the situation of the player unit first
         checkDie();
-        checkCharging();
+        bool isCharging = ShootHandler.getIsCharging();
 
         //exterternalDirection refer to force by other projectile
-        externalDirection = knockBack.getUpdatedKnockBack();
+        externalDirection = KnockBackHandler.getUpdatedKnockBack();
 
         //moveDirection refers to player control movement
         moveDirection = new Vector3(Input.GetAxis("Horizontal") * movementSpeed, 0, Input.GetAxis("Vertical") * movementSpeed);
@@ -67,20 +70,20 @@ public class playerController : NetworkBehaviour {
             // when player unit is charging, it movement only depends on external force, since it is not allowed to move when charging
             actualDirection = externalDirection;
         }
-        
+
         //print("knockBackCounter: " + knockBack.getKnockBackCounter());
         //print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
         // v = u + at
         actualDirection.y = actualDirection.y + (gravityScale * Physics.gravity.y);
 
         //after this line, the player move in meter per seconds scale, rather than meter per frame scale
-        controller.Move(actualDirection*Time.deltaTime);
+        controller.Move(actualDirection * Time.deltaTime);
         //print(actualDirection.x + ", " + actualDirection.y + ", " + actualDirection.z);
 
 
-        if (Input.GetButtonDown("Fire1") )
+        if (Input.GetButtonDown("Fire1"))
         {
-            shoot();            
+            shoot();
         }
         if (isCharging == false)
         {
@@ -97,61 +100,41 @@ public class playerController : NetworkBehaviour {
         }
         else
             // when charging, since previous rototation is set to the shooting direction, so just need to maintain that rotation.
-            transform.rotation = previousRotation;
+            transform.rotation = ShootHandler.getShootingDirection();
 
 
     }
 
-    private void shoot()
+    public void shoot()
     {
-        // character rotate with mouse direction
-        Plane playerPlane = new Plane(Vector3.up, transform.position);
-        Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
-        float hitDist = 0.0f;
+        ShootHandler.shoot();
+        float chargingTime = ShootHandler.getChargingTime();
+        chargeProjectile(chargingTime);
+    }
 
-        if (playerPlane.Raycast(ray, out hitDist))
-        {
-            Vector3 targetPoint = ray.GetPoint(hitDist);
-            Quaternion targetRotation = Quaternion.LookRotation(targetPoint - transform.position);
-            targetRotation.x = 0;
-            targetRotation.z = 0;
-            // change the unit rotation to the mouse position.
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 1);
-            previousRotation = transform.rotation;
-        }
-
-
-        print("charging time = " + selectedProjectile.GetComponent<Projectile>().getChargingTime());
-        print("kp = " + selectedProjectile.GetComponent<Projectile>().getKp());
-        //shoot(selectedProjectile.GetComponent<Fireball>().getChargingTime());
-        //projectileSpawned = Instantiate(selectedProjectile.transform, projectileSpawnPoint.transform.position, Quaternion.identity);
-        // this spawn projectile can be modified later to accomadate other type of projectile
-        chargingCounter = 0.3;
-        //print("charging Counter = " + chargingCounter);
-        //update the isCharging state
-        checkCharging();
-        
-        // wait for some time to invoke spawn projectile
-        Invoke("CmdSpawnProjectile",(float)0.3);
-        
+    public void chargeProjectile(float chargingTime)
+    {
+        Invoke("CmdSpawnProjectile", chargingTime);
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag == "Projectile")
         {
-            
-            if (other.GetComponent<Projectile>().getEmitter() == this.gameObject)
+
+            if (other.GetComponent<Projectile>().getPlayerNetId() == netId.Value)
             {
                 // do nothing if the emitter of the projectile is yourself
+                Debug.Log("netID = " + netId.Value);
                 return;
             }
             print("hit!");
             double kp = other.GetComponent<Projectile>().getKp();
             Vector3 hitDirection = other.transform.position - transform.position;
-            knockBack.setKnockBack(kp, hitDirection);
+            KnockBackHandler.setKnockBack(kp, hitDirection);
 
         }
+        print("OnTriggerEnter Finished");
     }
 
     private void checkDie()
@@ -160,27 +143,10 @@ public class playerController : NetworkBehaviour {
         {
             print("someone drop to dead!");
             Destroy(this.gameObject);
-            
+
         }
 
     }
-
-    private void checkCharging()
-    {
-        if (chargingCounter > 0)
-        {       
-            chargingCounter -= 1* Time.deltaTime;
-            isCharging = true;
-            print("chargingCounter = " + chargingCounter + " isCharging =  " + isCharging);
-        }
-        else
-        {
-            chargingCounter = 0;
-            isCharging = false;
-        }
-    }
-
-
 
     //COMMAND, use to send command to the server
     [Command]
@@ -189,7 +155,24 @@ public class playerController : NetworkBehaviour {
         projectileSpawned = Instantiate(selectedProjectile);
         projectileSpawned.transform.position = projectileSpawnPoint.transform.position;
         projectileSpawned.transform.rotation = projectileSpawnPoint.transform.rotation;
-        projectileSpawned.GetComponent<Projectile>().setEmitter(this.gameObject);
+        projectileSpawned.GetComponent<Projectile>().setPlayerNetId(netId.Value);
         NetworkServer.Spawn(projectileSpawned);
     }
+
+    ////RPC, use to send request to client
+    //[ClientRpc]
+    //private void RpcSpawnProjectile()
+    //{
+    //    Debug.Log("RPC");
+    //    projectileSpawned = Instantiate(selectedProjectile);
+    //    projectileSpawned.transform.position = projectileSpawnPoint.transform.position;
+    //    projectileSpawned.transform.rotation = projectileSpawnPoint.transform.rotation;
+    //    projectileSpawned.GetComponent<Projectile>().setPlayerNetId(netId.Value);
+    //    NetworkServer.Spawn(projectileSpawned);
+    //}
+
+
+
+
+
 }
