@@ -7,7 +7,7 @@ public class playerController : NetworkBehaviour
 {
     //public syncvar variable
     [SyncVar]
-    public double hp = 1000;
+    public float hp = 1000f;
 
 
     // Public Variables
@@ -44,6 +44,7 @@ public class playerController : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log("Hp = " + hp);
         if (hasAuthority == false)
         {
             // if player doesn't have authority to this Player unit
@@ -105,26 +106,43 @@ public class playerController : NetworkBehaviour
 
 
     }
+    public void drophealth(float damage)
+    {
+        hp -= damage;
+    }
 
     IEnumerator shoot()
     {
         ShootHandler.shoot();
-        float chargingTime = ShootHandler.getChargingTime();
+        //float chargingTime = ShootHandler.getChargingTime();
+        //print("chargingTime in shoothandler: " + chargingTime);
+        //chargingTime = selectedProjectile.GetComponent<Projectile>().getChargingTime();
+        //print("chargingTime in selectedProjectile.GetComponent: " + chargingTime);
+
+        //
+        //The problem now is I cannot retrieve chargingTime, or other information of the projectile before it is Instantiated
+        //The temporary solution now is to lock the charging time to 0.2f
+        //The charging Time of the shootHandler is set to 0.25f to give extra rotation reaction time.
+        //Expected call this function with the following statedment
+        //float chargingTime = ShootHandler.getChargingTime();
+
+        float chargingTime = 0.2f;
         yield return new WaitForSeconds(chargingTime);
         CmdSpawnProjectile();
         yield return null;
     }
+    //public void chargeProjectile(float chargingTime)
+    //{
+    //    Invoke("CmdSpawnProjectile", chargingTime);
+    //}
 
-    public void chargeProjectile(float chargingTime)
-    {
-        Invoke("CmdSpawnProjectile", chargingTime);
-    }
 
+    // when an ontrigger object touch this player unit
+    // can get component data from Other
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag == "Projectile")
         {
-            print("other.damage = " +other.GetComponent<Projectile>().getDamage());
             if (other.GetComponent<Projectile>().getPlayerNetId() == netId.Value)
             {
                 // do nothing if the emitter of the projectile is yourself
@@ -132,7 +150,6 @@ public class playerController : NetworkBehaviour
                 Debug.Log("fireball has netID = " + other.GetComponent<Projectile>().getPlayerNetId());
                 return;
             }
-            print("hit!");
             double kp = other.GetComponent<Projectile>().getKp();
             Vector3 hitDirection = other.transform.position - transform.position;
             KnockBackHandler.setKnockBack(kp, hitDirection);
@@ -145,9 +162,14 @@ public class playerController : NetworkBehaviour
     {
         if (transform.position.y < -20)
         {
-            print("someone drop to dead!");
+            Debug.Log("someone drop to dead!");
             Destroy(this.gameObject);
 
+        }
+        if (this.hp <= 0)
+        {
+            Debug.Log("someone take damage to dead");
+            Destroy(this.gameObject);
         }
 
     }

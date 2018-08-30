@@ -18,6 +18,7 @@ public class Fireball : Projectile {
     {
         if (other.tag == "PlayerUnit" && other.GetComponent<NetworkIdentity>().netId.Value != this.playerNetId)
         {
+            other.GetComponent<playerController>().drophealth(damage);
 
             Invoke("selfDestroy", 2*Time.deltaTime);
         }

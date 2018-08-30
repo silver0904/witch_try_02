@@ -40,6 +40,10 @@ public class shootHandler :ScriptableObject{
         return this.isCharging;
     }
 
+    public void setChargingTime(float t)
+    {
+        this.chargingTime = t;
+    }
     public float getChargingTime()
     {
         return this.chargingTime;
