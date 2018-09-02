@@ -3,9 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class knockBackHandler : ScriptableObject{
+public class knockBackHandler {
     //variables
     public double knockBackCounter = 0;
+    private float knockBackDecadingScale = 1.05f;
     private double threshold = 1.000003;
     private Vector3 hitDirection = new Vector3();
     private Vector3 externalDirection = new Vector3();
@@ -22,7 +23,7 @@ public class knockBackHandler : ScriptableObject{
     {
         if (knockBackCounter > threshold)
         {
-            knockBackCounter = knockBackCounter/2;
+            knockBackCounter = knockBackCounter/ knockBackDecadingScale;
             externalDirection = -hitDirection * (float)knockBackCounter;
             //print(externalDirection.x + ", " + externalDirection.y + ", " + externalDirection.z);
 

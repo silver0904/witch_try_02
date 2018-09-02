@@ -8,6 +8,8 @@ public class playerController : NetworkBehaviour
     //public syncvar variable
     [SyncVar]
     public float hp = 1000f;
+    [SyncVar]
+    public string playerName ;
 
 
     // Public Variables
@@ -30,6 +32,14 @@ public class playerController : NetworkBehaviour
     private shootHandler ShootHandler;
     private GameObject projectileSpawned;
 
+    // this the the GUI part
+    void OnGUI()
+    {
+        playerName = GUI.TextField (new Rect (25, Screen.height - 40, 100, 30), playerName);
+        if (GUI.Button(new Rect(130, Screen.height - 40, 80, 30), "Change")){
+            CmdChangeName(playerName);
+        }
+    }
 
     // Use this for initialization
     void Start()
@@ -37,7 +47,7 @@ public class playerController : NetworkBehaviour
         controller = GetComponent<CharacterController>();
         KnockBackHandler = new knockBackHandler();
         ShootHandler = new shootHandler(selectedProjectile, this.gameObject.transform);
-        
+        playerName = "player " + netId.Value;
 
     }
 
@@ -48,10 +58,11 @@ public class playerController : NetworkBehaviour
         if (hasAuthority == false)
         {
             // if player doesn't have authority to this Player unit
-            // if player is charging to spawn a fireball
             // don't do anything
             return;
         }
+        //set the player name to be the text in textfield
+        this.GetComponentInChildren<TextMesh>().text = playerName;
         //check and update the situation of the player unit first
         checkDie();
         bool isCharging = ShootHandler.getIsCharging();
@@ -128,7 +139,9 @@ public class playerController : NetworkBehaviour
 
         float chargingTime = 0.2f;
         yield return new WaitForSeconds(chargingTime);
+        Debug.Log("this is the before of the Cmd spawn");
         CmdSpawnProjectile();
+        Debug.Log("this is the after of the Cmd spawn");
         yield return null;
     }
     //public void chargeProjectile(float chargingTime)
@@ -143,11 +156,12 @@ public class playerController : NetworkBehaviour
     {
         if (other.tag == "Projectile")
         {
+            Debug.Log("this object netID = " + netId.Value);
+            Debug.Log("fireball has netID = " + other.GetComponent<Projectile>().getPlayerNetId());
             if (other.GetComponent<Projectile>().getPlayerNetId() == netId.Value)
             {
                 // do nothing if the emitter of the projectile is yourself
-                Debug.Log("this object netID = " + netId.Value);
-                Debug.Log("fireball has netID = " + other.GetComponent<Projectile>().getPlayerNetId());
+                
                 return;
             }
             double kp = other.GetComponent<Projectile>().getKp();
@@ -163,13 +177,13 @@ public class playerController : NetworkBehaviour
         if (transform.position.y < -20)
         {
             Debug.Log("someone drop to dead!");
-            Destroy(this.gameObject);
+            CmdSelfDestroy();
 
         }
         if (this.hp <= 0)
         {
             Debug.Log("someone take damage to dead");
-            Destroy(this.gameObject);
+            CmdSelfDestroy();
         }
 
     }
@@ -178,13 +192,14 @@ public class playerController : NetworkBehaviour
     [Command]
     private void CmdSpawnProjectile()
     {
+        Debug.Log("this is the beginning of the Cmd spawn");
         projectileSpawned = Instantiate(selectedProjectile);
         projectileSpawned.transform.position = projectileSpawnPoint.transform.position;
         projectileSpawned.transform.rotation = projectileSpawnPoint.transform.rotation;
         projectileSpawned.GetComponent<Projectile>().setPlayerNetId(netId.Value);
         NetworkServer.Spawn(projectileSpawned);
+        Debug.Log("this is the end of the Cmd spawn");
     }
-
     ////RPC, use to send request to client
     //[ClientRpc]
     //private void RpcSpawnProjectile()
@@ -196,7 +211,18 @@ public class playerController : NetworkBehaviour
     //    projectileSpawned.GetComponent<Projectile>().setPlayerNetId(netId.Value);
     //    NetworkServer.Spawn(projectileSpawned);
     //}
+    [Command]
+    private void CmdChangeName (string newName)
+    {
+        playerName = newName;
+    }
 
+    [Command]
+    private void CmdSelfDestroy()
+    {
+        Destroy(this.gameObject);
+        NetworkServer.Destroy(this.gameObject);
+    }
 
 
 

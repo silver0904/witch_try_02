@@ -7,7 +7,7 @@ public class Fireball : Projectile {
     private static float fireballTravelSpeed = 5;
     private static float fireballMaxDistance = 7f;
     private static float fireballBaseDamage = 10;
-    private static double fireballBasekp = 100;
+    private static double fireballBasekp = 30;
     private static float fireballChargingTime = 0.3f;
 
     public Fireball() : base()
@@ -20,14 +20,16 @@ public class Fireball : Projectile {
         {
             other.GetComponent<playerController>().drophealth(damage);
 
-            Invoke("selfDestroy", 2*Time.deltaTime);
+            //Invoke("selfDestroy", 2*Time.deltaTime);
+            Invoke("selfDestroy", 2 * Time.deltaTime);
+        }
+        if (other.tag == "Projectile" && other.GetComponent<Projectile>().getPlayerNetId() != this.playerNetId)
+        {
+            Invoke("selfDestroy", 2 * Time.deltaTime);
         }
     }
 
-    private void selfDestroy()
-    {
-        Destroy(this.gameObject);
-    }
+
     // Use this for initialization
     //every time a projectile is spawn, this will run
     void Start () {
@@ -43,4 +45,6 @@ public class Fireball : Projectile {
 	void Update () {
         base.Update();
 	}
+
+
 }

@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 
 public class damageArea : NetworkBehaviour {
 
-    public static float damageScale = 10;
+    public static float damageScale = 50;
 	// Use this for initialization
 	void Start () {
 		

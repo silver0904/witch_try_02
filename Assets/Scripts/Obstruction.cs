@@ -30,7 +30,7 @@ public class Obstruction : NetworkBehaviour {
             GameObject projectile = other.gameObject;
             this.hp -= projectile.GetComponent<Projectile>().getDamage();
             print(this.hp);
-            Destroy(projectile);
+            projectile.GetComponent<Projectile>().selfDestroy();
         }
     }
 }

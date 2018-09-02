@@ -12,7 +12,8 @@ public class Projectile : NetworkBehaviour {
     protected  float damage;
     protected  double kp;
     protected  float chargingTime;
-    protected  uint playerNetId;
+    [SyncVar]
+    public  uint playerNetId;
 
     // Constructor
     public Projectile()
@@ -55,5 +56,16 @@ public class Projectile : NetworkBehaviour {
     {
 
         return chargingTime;
+    }
+
+    public void selfDestroy()
+    {
+        CmdDestroy();
+    }
+    //Command send to server
+    private void CmdDestroy()
+    {
+        Destroy(this.gameObject);
+        NetworkServer.Destroy(this.gameObject);
     }
 }
