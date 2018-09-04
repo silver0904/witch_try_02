@@ -139,9 +139,9 @@ public class playerController : NetworkBehaviour
 
         float chargingTime = 0.2f;
         yield return new WaitForSeconds(chargingTime);
-        Debug.Log("this is the before of the Cmd spawn");
+        //Debug.Log("this is the before of the Cmd spawn");
         CmdSpawnProjectile();
-        Debug.Log("this is the after of the Cmd spawn");
+        //Debug.Log("this is the after of the Cmd spawn");
         yield return null;
     }
     //public void chargeProjectile(float chargingTime)
@@ -156,8 +156,8 @@ public class playerController : NetworkBehaviour
     {
         if (other.tag == "Projectile")
         {
-            Debug.Log("this object netID = " + netId.Value);
-            Debug.Log("fireball has netID = " + other.GetComponent<Projectile>().getPlayerNetId());
+            //Debug.Log("this object netID = " + netId.Value);
+            //Debug.Log("fireball has netID = " + other.GetComponent<Projectile>().getPlayerNetId());
             if (other.GetComponent<Projectile>().getPlayerNetId() == netId.Value)
             {
                 // do nothing if the emitter of the projectile is yourself
@@ -192,13 +192,13 @@ public class playerController : NetworkBehaviour
     [Command]
     private void CmdSpawnProjectile()
     {
-        Debug.Log("this is the beginning of the Cmd spawn");
+        //Debug.Log("this is the beginning of the Cmd spawn");
         projectileSpawned = Instantiate(selectedProjectile);
         projectileSpawned.transform.position = projectileSpawnPoint.transform.position;
         projectileSpawned.transform.rotation = projectileSpawnPoint.transform.rotation;
         projectileSpawned.GetComponent<Projectile>().setPlayerNetId(netId.Value);
         NetworkServer.Spawn(projectileSpawned);
-        Debug.Log("this is the end of the Cmd spawn");
+        //Debug.Log("this is the end of the Cmd spawn");
     }
     ////RPC, use to send request to client
     //[ClientRpc]
