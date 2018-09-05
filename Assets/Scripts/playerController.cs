@@ -35,9 +35,13 @@ public class playerController : NetworkBehaviour
     // this the the GUI part
     void OnGUI()
     {
-        playerName = GUI.TextField (new Rect (25, Screen.height - 40, 100, 30), playerName);
-        if (GUI.Button(new Rect(130, Screen.height - 40, 80, 30), "Change")){
-            CmdChangeName(playerName);
+        if (hasAuthority)
+        {
+            playerName = GUI.TextField(new Rect(25, Screen.height - 40, 100, 30), playerName);
+            if (GUI.Button(new Rect(130, Screen.height - 40, 80, 30), "Change"))
+            {
+                CmdChangeName(playerName);
+            }
         }
     }
 
@@ -48,6 +52,11 @@ public class playerController : NetworkBehaviour
         KnockBackHandler = new knockBackHandler();
         ShootHandler = new shootHandler(selectedProjectile, this.gameObject.transform);
         playerName = "player " + netId.Value;
+        //Set the camera to follow the player
+        if (hasAuthority == false)
+        {
+            cameraAction();
+        }
 
     }
 
@@ -63,8 +72,10 @@ public class playerController : NetworkBehaviour
         }
         //set the player name to be the text in textfield
         this.GetComponentInChildren<TextMesh>().text = playerName;
+
         //check and update the situation of the player unit first
         checkDie();
+        cameraAction();
         bool isCharging = ShootHandler.getIsCharging();
 
         //exterternalDirection refer to force by other projectile
@@ -122,7 +133,16 @@ public class playerController : NetworkBehaviour
         hp -= damage;
     }
 
-    IEnumerator shoot()
+    private void cameraAction()
+    {
+        UnityEngine.Camera.main.transform.position = 
+            new Vector3(this.transform.position.x, this.transform.position.y + 10, this.transform.transform.position.z - 4);
+
+        UnityEngine.Camera.main.transform.LookAt(this.transform.position);
+        //UnityEngine.Camera.main.transform.parent = this.transform;
+    }
+
+    private IEnumerator shoot()
     {
         ShootHandler.shoot();
         //float chargingTime = ShootHandler.getChargingTime();
@@ -220,6 +240,7 @@ public class playerController : NetworkBehaviour
     [Command]
     private void CmdSelfDestroy()
     {
+
         Destroy(this.gameObject);
         NetworkServer.Destroy(this.gameObject);
     }
